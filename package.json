@@ -11,7 +11,10 @@
         "enableMultiJS": true,
         "messageKeys": [
             "JSReady",
-            "AppEvent"
+            "AppEvent",
+            "AccelX",
+            "AccelY",
+            "AccelZ"
         ],
         "projectType": "native",
         "resources": {

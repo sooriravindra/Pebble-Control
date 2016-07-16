@@ -1,4 +1,5 @@
 #include <pebble.h>
+#define ACCEL_STEP_MS 300
 const uint32_t inbox_size = 64;
 const uint32_t outbox_size = 256;
 static Window *s_main_window;
@@ -42,6 +43,23 @@ static void main_window_load(Window *window) {
 static void main_window_unload(Window *window) {
 
 }
+static void timer_callback(void *data) {
+  DictionaryIterator *iter;
+  int msgValue = 3;
+  AccelData accel = (AccelData) { .x = 0, .y = 0, .z = 0 };
+  accel_service_peek(&accel);
+  
+  if(app_message_outbox_begin(&iter) == APP_MSG_OK) {
+    dict_write_int(iter, MESSAGE_KEY_AppEvent, &msgValue, sizeof(int), true);
+    dict_write_int16(iter, MESSAGE_KEY_AccelX, accel.x);
+    dict_write_int16(iter, MESSAGE_KEY_AccelY, accel.y);
+    dict_write_int16(iter, MESSAGE_KEY_AccelZ, accel.z);
+    app_message_outbox_send();
+  }
+
+  app_timer_register(ACCEL_STEP_MS, timer_callback, NULL);
+}
+
 void down_single_click_handler(ClickRecognizerRef recognizer, void *context) {
  // Window *window = (Window *)context;
   static char s_buffer[8];
@@ -108,15 +126,20 @@ static void init()
   });
   
    window_set_click_config_provider(s_main_window, (ClickConfigProvider) config_provider);
+  
+  app_message_open(inbox_size, outbox_size);
+  accel_data_service_subscribe(0, NULL);
+  app_timer_register(ACCEL_STEP_MS, timer_callback, NULL);
+  
   // Show the Window on the watch, with animated=true
   window_stack_push(s_main_window, true);
-  app_message_open(inbox_size, outbox_size);
 }
 
 
 static void deinit()
 {
- window_destroy(s_main_window); 
+  accel_data_service_unsubscribe();
+  window_destroy(s_main_window); 
 }
 int main()
 {

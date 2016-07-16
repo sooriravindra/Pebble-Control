@@ -9,12 +9,12 @@ Pebble.addEventListener('ready', function() {
 Pebble.addEventListener('appmessage', function(e) {
   // Get the dictionary from the message
   var dict = e.payload;
-  makeRequest(dict.AppEvent);
+  makeRequest(dict.AppEvent,dict);
 
   console.log('Got message: ' + JSON.stringify(dict));
 });
 
-function makeRequest(event)
+function makeRequest(event,data)
 {
   var method = 'GET';
   var url = 'http://192.168.1.102:3000/';
@@ -27,8 +27,11 @@ function makeRequest(event)
       case 1:
         path = "button_up";
         break;
-      case 3:
+      case 2:
         path = "button_sel";
+        break;
+      case 3:
+        path = "move?x="+data.AccelX+"&y="+data.AccelY+"&z="+data.AccelZ;
         break;
     }
   // Create the request
