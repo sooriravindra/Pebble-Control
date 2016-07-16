@@ -10,9 +10,8 @@
         "displayName": "pebble_c",
         "enableMultiJS": true,
         "messageKeys": [
-            "ButtonUp",
-            "ButtonDown",
-            "ButtonSel"
+            "JSReady",
+            "AppEvent"
         ],
         "projectType": "native",
         "resources": {
