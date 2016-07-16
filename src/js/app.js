@@ -31,7 +31,10 @@ function makeRequest(event,data)
         path = "button_sel";
         break;
       case 3:
-        path = "move?x="+data.AccelX+"&y="+data.AccelY+"&z="+data.AccelZ;
+        path = "move_mouse?x="+data.AccelX+"&y="+data.AccelY+"&z="+data.AccelZ;
+        break;
+      case 4:
+        path = "move_keyboard?x="+data.AccelX+"&y="+data.AccelY+"&z="+data.AccelZ;
         break;
     }
   // Create the request

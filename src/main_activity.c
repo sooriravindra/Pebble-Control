@@ -5,6 +5,7 @@ const uint32_t outbox_size = 256;
 static Window *s_main_window;
 static TextLayer *s_time_layer;
 static bool s_js_ready;
+bool is_mouse_mode = true;
 
 bool comm_is_js_ready() {
   return s_js_ready;
@@ -45,7 +46,13 @@ static void main_window_unload(Window *window) {
 }
 static void timer_callback(void *data) {
   DictionaryIterator *iter;
-  int msgValue = 3;
+  int msgValue;
+  if(is_mouse_mode){
+    msgValue = 3;
+  }
+  else {
+    msgValue = 4;
+  }
   AccelData accel = (AccelData) { .x = 0, .y = 0, .z = 0 };
   accel_service_peek(&accel);
   
@@ -98,11 +105,24 @@ void down_single_click_handler(ClickRecognizerRef recognizer, void *context) {
   // Display this time on the TextLayer
   text_layer_set_text(s_time_layer, s_buffer);
 }
+void down_long_click_handler(ClickRecognizerRef recognizer, void *context) {
+ // Window *window = (Window *)context;
+  static char s_buffer[8];
+  ButtonId button = click_recognizer_get_button_id(recognizer);
+  
+  if(button == BUTTON_ID_SELECT) {
+    
+    strcpy(s_buffer, "Swap X");
+    text_layer_set_text(s_time_layer, s_buffer);
+    is_mouse_mode = !is_mouse_mode;
+  }
+}
 void config_provider(Window *window) {
  // single click / repeat-on-hold config:
   window_single_click_subscribe(BUTTON_ID_DOWN, down_single_click_handler);
   window_single_click_subscribe(BUTTON_ID_UP, down_single_click_handler);
   window_single_click_subscribe(BUTTON_ID_SELECT, down_single_click_handler);
+  window_long_click_subscribe(BUTTON_ID_SELECT, 0, down_long_click_handler,NULL);
   /*
   window_single_repeating_click_subscribe(BUTTON_ID_SELECT, 1000, select_single_click_handler);
 
