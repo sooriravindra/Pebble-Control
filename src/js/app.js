@@ -1,6 +1,7 @@
 Pebble.addEventListener('ready', function() {
   // PebbleKit JS is ready!
   console.log('PebbleKit requesting 2!');
+  Pebble.sendAppMessage({'JSReady': 1});
   var method = 'GET';
   var url = 'http://192.168.1.102:3000/move';
   
@@ -17,4 +18,12 @@ Pebble.addEventListener('ready', function() {
   request.open(method, url);
   request.send();
   console.log('PebbleKit request sent!');
+});
+
+// Get AppMessage events
+Pebble.addEventListener('appmessage', function(e) {
+  // Get the dictionary from the message
+  var dict = e.payload;
+
+  console.log('Got message: ' + JSON.stringify(dict));
 });

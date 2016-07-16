@@ -1,6 +1,19 @@
 #include <pebble.h>
 static Window *s_main_window;
 static TextLayer *s_time_layer;
+static bool s_js_ready;
+
+bool comm_is_js_ready() {
+  return s_js_ready;
+}
+
+/*static void inbox_received_handler(DictionaryIterator *iter, void *context) {
+  Tuple *ready_tuple = dict_find(iter, MESSAGE_KEY_JSReady);
+  if(ready_tuple) {
+    // PebbleKit JS is ready! Safe to send messages
+    s_js_ready = true;
+  }
+}*/
 
 static void main_window_load(Window *window) {
 
@@ -30,12 +43,19 @@ static void main_window_unload(Window *window) {
 void down_single_click_handler(ClickRecognizerRef recognizer, void *context) {
  // Window *window = (Window *)context;
   static char s_buffer[8];
+  DictionaryIterator *iter;
+  int key = 1, value = 2;
   ButtonId button = click_recognizer_get_button_id(recognizer);
   
   switch(button)
   {
     case BUTTON_ID_DOWN:
     strcpy(s_buffer, "down :P");
+    if(app_message_outbox_begin(&iter) == APP_MSG_OK) {
+      dict_write_int(iter, key, &value, sizeof(int), true);
+      app_message_outbox_send();
+    }
+
     break;
     case BUTTON_ID_UP:
     strcpy(s_buffer, "UP B)");

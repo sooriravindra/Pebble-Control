@@ -9,12 +9,21 @@
         ],
         "displayName": "pebble_c",
         "enableMultiJS": true,
-        "messageKeys": [],
+        "messageKeys": [
+            "ButtonUp",
+            "ButtonDown",
+            "ButtonSel"
+        ],
         "projectType": "native",
         "resources": {
             "media": []
         },
         "sdkVersion": "3",
+        "targetPlatforms": [
+            "aplite",
+            "basalt",
+            "chalk"
+        ],
         "uuid": "75357922-4eaf-4ed1-bddc-63726ee0050a",
         "watchapp": {
             "watchface": false
