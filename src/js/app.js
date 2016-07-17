@@ -16,23 +16,27 @@ function makeRequest(event,data)
   var method = 'GET';
   var url = 'http://192.168.1.102:3000/';
   var path = '';
+  var key = '';
+  switch (data.KeyPress){
+    case 0:
+      key = "up";
+      break;
+    case 1:
+      key = "sel"
+      break;
+    case 2:
+      key = "down";
+      break;
+    default:
+      key="";
+  }
   switch(event)
     {
-      case 0:
-        path = "button_down";
+      case 10:
+        path = "move_mouse?x="+data.AccelX+"&y="+data.AccelY+"&z="+data.AccelZ+"&key="+key;
         break;
-      case 1:
-        path = "button_up";
-        break;
-      case 2:
-        path = "button_sel";
-        console.log('Requesting '+url+path);
-        break;
-      case 3:
-        path = "move_mouse?x="+data.AccelX+"&y="+data.AccelY+"&z="+data.AccelZ;
-        break;
-      case 4:
-        path = "move_keyboard?x="+data.AccelX+"&y="+data.AccelY+"&z="+data.AccelZ;
+      case 20:
+        path = "move_keyboard?x="+data.AccelX+"&y="+data.AccelY+"&z="+data.AccelZ+"&key="+key;
         break;
     }
   // Create the request

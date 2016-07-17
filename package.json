@@ -10,11 +10,11 @@
         "displayName": "pebble_c",
         "enableMultiJS": true,
         "messageKeys": [
-            "JSReady",
-            "AppEvent",
+            "KeyPress",
             "AccelX",
             "AccelY",
-            "AccelZ"
+            "AccelZ",
+            "AppEvent"
         ],
         "projectType": "native",
         "resources": {

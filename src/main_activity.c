@@ -7,18 +7,25 @@ static TextLayer *s_time_layer;
 static bool s_js_ready;
 bool send_data = true;
 bool is_mouse_mode = true;
+enum pebble_keys {
+  KEY_UP =0,
+  KEY_SEL,
+  KEY_DOWN
+};
+
+int pressed_button = -1;
 
 bool comm_is_js_ready() {
   return s_js_ready;
 }
 
-static void inbox_received_handler(DictionaryIterator *iter, void *context) {
+/*static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   Tuple *ready_tuple = dict_find(iter, MESSAGE_KEY_JSReady);
   if(ready_tuple) {
     // PebbleKit JS is ready! Safe to send messages
     s_js_ready = true;
   }
-}
+}*/
 
 static void main_window_load(Window *window) {
 
@@ -49,23 +56,23 @@ static void timer_callback(void *data) {
   DictionaryIterator *iter;
   int msgValue;
   
-  if(send_data){
-    if(is_mouse_mode){
-      msgValue = 3;
-    }
-    else {
-      msgValue = 4;
-    }
-    AccelData accel = (AccelData) { .x = 0, .y = 0, .z = 0 };
-    accel_service_peek(&accel);
-    
-    if(app_message_outbox_begin(&iter) == APP_MSG_OK) {
-      dict_write_int(iter, MESSAGE_KEY_AppEvent, &msgValue, sizeof(int), true);
-      dict_write_int16(iter, MESSAGE_KEY_AccelX, accel.x);
-      dict_write_int16(iter, MESSAGE_KEY_AccelY, accel.y);
-      dict_write_int16(iter, MESSAGE_KEY_AccelZ, accel.z);
-      app_message_outbox_send();
-    }
+  if(is_mouse_mode){
+    msgValue = 10;
+  }
+  else {
+    msgValue = 20;
+  }
+  AccelData accel = (AccelData) { .x = 0, .y = 0, .z = 0 };
+  accel_service_peek(&accel);
+
+  if(app_message_outbox_begin(&iter) == APP_MSG_OK) {
+    dict_write_int(iter, MESSAGE_KEY_AppEvent, &msgValue, sizeof(int), true);
+    dict_write_int16(iter, MESSAGE_KEY_AccelX, accel.x);
+    dict_write_int16(iter, MESSAGE_KEY_AccelY, accel.y);
+    dict_write_int16(iter, MESSAGE_KEY_AccelZ, accel.z);
+    dict_write_int16(iter, MESSAGE_KEY_KeyPress, pressed_button);
+    app_message_outbox_send();
+    pressed_button = -1;
   }
 
   app_timer_register(ACCEL_STEP_MS, timer_callback, NULL);
@@ -84,33 +91,25 @@ void down_single_click_handler(ClickRecognizerRef recognizer, void *context) {
   {
     case BUTTON_ID_DOWN:
     strcpy(s_buffer, "down :P");
-    msgValue = 0;
+    pressed_button = KEY_DOWN;
     break;
     
     case BUTTON_ID_UP:
     strcpy(s_buffer, "UP B)");
-    msgValue = 1;
+    pressed_button = KEY_UP;
     break;
     
     case BUTTON_ID_SELECT:
     strcpy(s_buffer, "select");
-    msgValue = 2;
+    pressed_button = KEY_SEL;
     break;
     
     default:
-    msgValue = -1;
+    pressed_button = -1;
     strcpy(s_buffer, "unknown");
     
   }
-  while( (ret = app_message_outbox_begin(&iter)) != APP_MSG_OK && tries--) {
-      send_data = false;
-      psleep(200);
-      APP_LOG(APP_LOG_LEVEL_ERROR, "Outbox begin failed %d",ret);
-  }
-  send_data = true;
-  dict_write_int(iter, MESSAGE_KEY_AppEvent, &msgValue, sizeof(int), true);
-  app_message_outbox_send();
-
+  
   // Display this time on the TextLayer
   text_layer_set_text(s_time_layer, s_buffer);
 }
