@@ -1,10 +1,11 @@
 #include <pebble.h>
-#define ACCEL_STEP_MS 300
+#define ACCEL_STEP_MS 200
 const uint32_t inbox_size = 64;
 const uint32_t outbox_size = 256;
 static Window *s_main_window;
 static TextLayer *s_time_layer;
 static bool s_js_ready;
+bool send_data = true;
 bool is_mouse_mode = true;
 
 bool comm_is_js_ready() {
@@ -47,21 +48,24 @@ static void main_window_unload(Window *window) {
 static void timer_callback(void *data) {
   DictionaryIterator *iter;
   int msgValue;
-  if(is_mouse_mode){
-    msgValue = 3;
-  }
-  else {
-    msgValue = 4;
-  }
-  AccelData accel = (AccelData) { .x = 0, .y = 0, .z = 0 };
-  accel_service_peek(&accel);
   
-  if(app_message_outbox_begin(&iter) == APP_MSG_OK) {
-    dict_write_int(iter, MESSAGE_KEY_AppEvent, &msgValue, sizeof(int), true);
-    dict_write_int16(iter, MESSAGE_KEY_AccelX, accel.x);
-    dict_write_int16(iter, MESSAGE_KEY_AccelY, accel.y);
-    dict_write_int16(iter, MESSAGE_KEY_AccelZ, accel.z);
-    app_message_outbox_send();
+  if(send_data){
+    if(is_mouse_mode){
+      msgValue = 3;
+    }
+    else {
+      msgValue = 4;
+    }
+    AccelData accel = (AccelData) { .x = 0, .y = 0, .z = 0 };
+    accel_service_peek(&accel);
+    
+    if(app_message_outbox_begin(&iter) == APP_MSG_OK) {
+      dict_write_int(iter, MESSAGE_KEY_AppEvent, &msgValue, sizeof(int), true);
+      dict_write_int16(iter, MESSAGE_KEY_AccelX, accel.x);
+      dict_write_int16(iter, MESSAGE_KEY_AccelY, accel.y);
+      dict_write_int16(iter, MESSAGE_KEY_AccelZ, accel.z);
+      app_message_outbox_send();
+    }
   }
 
   app_timer_register(ACCEL_STEP_MS, timer_callback, NULL);
@@ -69,6 +73,8 @@ static void timer_callback(void *data) {
 
 void down_single_click_handler(ClickRecognizerRef recognizer, void *context) {
  // Window *window = (Window *)context;
+  
+  int ret, tries = 4;
   static char s_buffer[8];
   DictionaryIterator *iter;
   int msgValue;
@@ -96,11 +102,14 @@ void down_single_click_handler(ClickRecognizerRef recognizer, void *context) {
     strcpy(s_buffer, "unknown");
     
   }
-  
-  if(app_message_outbox_begin(&iter) == APP_MSG_OK) {
-    dict_write_int(iter, MESSAGE_KEY_AppEvent, &msgValue, sizeof(int), true);
-    app_message_outbox_send();
+  while( (ret = app_message_outbox_begin(&iter)) != APP_MSG_OK && tries--) {
+      send_data = false;
+      psleep(200);
+      APP_LOG(APP_LOG_LEVEL_ERROR, "Outbox begin failed %d",ret);
   }
+  send_data = true;
+  dict_write_int(iter, MESSAGE_KEY_AppEvent, &msgValue, sizeof(int), true);
+  app_message_outbox_send();
 
   // Display this time on the TextLayer
   text_layer_set_text(s_time_layer, s_buffer);
@@ -133,6 +142,15 @@ void config_provider(Window *window) {
   window_long_click_subscribe(BUTTON_ID_SELECT, 700, select_long_click_handler, select_long_click_release_handler);
   */
 }
+static void outbox_failed_callback(DictionaryIterator *iter,
+                                      AppMessageResult reason, void *context) {
+  // The message just sent failed to be delivered
+  APP_LOG(APP_LOG_LEVEL_ERROR, "Message send failed. Reason: %d", (int)reason);
+  /*if(app_message_outbox_begin(&iter) == APP_MSG_OK) {
+    app_message_outbox_send();
+  }*/
+  
+}
 
 static void init()
 {
@@ -148,6 +166,7 @@ static void init()
    window_set_click_config_provider(s_main_window, (ClickConfigProvider) config_provider);
   
   app_message_open(inbox_size, outbox_size);
+  app_message_register_outbox_failed(outbox_failed_callback);
   accel_data_service_subscribe(0, NULL);
   app_timer_register(ACCEL_STEP_MS, timer_callback, NULL);
   

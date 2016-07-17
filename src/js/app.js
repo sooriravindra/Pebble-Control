@@ -1,6 +1,5 @@
 Pebble.addEventListener('ready', function() {
   // PebbleKit JS is ready!
-  console.log('PebbleKit requesting 2!');
   Pebble.sendAppMessage({'JSReady': 1});
  
 });
@@ -10,8 +9,6 @@ Pebble.addEventListener('appmessage', function(e) {
   // Get the dictionary from the message
   var dict = e.payload;
   makeRequest(dict.AppEvent,dict);
-
-  console.log('Got message: ' + JSON.stringify(dict));
 });
 
 function makeRequest(event,data)
@@ -29,6 +26,7 @@ function makeRequest(event,data)
         break;
       case 2:
         path = "button_sel";
+        console.log('Requesting '+url+path);
         break;
       case 3:
         path = "move_mouse?x="+data.AccelX+"&y="+data.AccelY+"&z="+data.AccelZ;
@@ -43,13 +41,11 @@ function makeRequest(event,data)
   // Specify the callback for when the request is completed
   request.onload = function() {
     // The request was successfully completed!
-    console.log('Got response: ' + this.responseText);
   };
   
   // Send the request
   
-  console.log('Requesting '+url+path);
+  
   request.open(method, url+path);
   request.send();
-  console.log('PebbleKit request sent!');
 }
