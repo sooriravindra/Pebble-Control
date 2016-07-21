@@ -14,7 +14,7 @@ Pebble.addEventListener('appmessage', function(e) {
 function makeRequest(event,data)
 {
   var method = 'GET';
-  var url = 'http://192.168.1.102:3000/';
+  var url = 'http://192.168.1.101:3000/';
   var path = '';
   var key = '';
   switch (data.KeyPress){
@@ -26,6 +26,9 @@ function makeRequest(event,data)
       break;
     case 2:
       key = "down";
+      break;
+    case 3:
+      key = "backspace";
       break;
     default:
       key="";

@@ -10,7 +10,8 @@ bool is_mouse_mode = true;
 enum pebble_keys {
   KEY_UP =0,
   KEY_SEL,
-  KEY_DOWN
+  KEY_DOWN,
+  KEY_LONG_DOWN
 };
 
 int pressed_button = -1;
@@ -118,12 +119,21 @@ void down_long_click_handler(ClickRecognizerRef recognizer, void *context) {
   static char s_buffer[8];
   ButtonId button = click_recognizer_get_button_id(recognizer);
   
-  if(button == BUTTON_ID_SELECT) {
-    
-    strcpy(s_buffer, "Swap X");
-    text_layer_set_text(s_time_layer, s_buffer);
-    is_mouse_mode = !is_mouse_mode;
-  }
+  switch(button) {
+    case BUTTON_ID_SELECT: 
+      strcpy(s_buffer, "Swap X");
+      text_layer_set_text(s_time_layer, s_buffer);
+      is_mouse_mode = !is_mouse_mode;
+      break;
+    case BUTTON_ID_DOWN:
+      strcpy(s_buffer, "Swap X");
+      text_layer_set_text(s_time_layer, s_buffer);
+      pressed_button = KEY_LONG_DOWN;
+      break;
+    default:
+      break;
+  }      
+
 }
 void config_provider(Window *window) {
  // single click / repeat-on-hold config:
@@ -131,6 +141,7 @@ void config_provider(Window *window) {
   window_single_click_subscribe(BUTTON_ID_UP, down_single_click_handler);
   window_single_click_subscribe(BUTTON_ID_SELECT, down_single_click_handler);
   window_long_click_subscribe(BUTTON_ID_SELECT, 0, down_long_click_handler,NULL);
+  window_long_click_subscribe(BUTTON_ID_DOWN, 0, down_long_click_handler,NULL);
   /*
   window_single_repeating_click_subscribe(BUTTON_ID_SELECT, 1000, select_single_click_handler);
 
